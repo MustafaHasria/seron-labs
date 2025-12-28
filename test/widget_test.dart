@@ -21,48 +21,66 @@ void main() {
 
   tearDown(() async {
     // Clean up in reverse order of dependency
-    // 1. Dispose repository (cancels subscription to service)
-    if (sl.isRegistered<ITradeRepository>()) {
-      try {
-        final repository = sl<ITradeRepository>();
-        await repository.dispose();
-      } catch (_) {
-        // Already disposed or not instantiated
-      }
-    }
-
-    // 2. Dispose service (stops timer)
-    if (sl.isRegistered<ITradeService>()) {
-      try {
-        final service = sl<ITradeService>();
-        if (service is MockTradeService) {
-          await service.dispose();
+    try {
+      // 1. Dispose repository (cancels subscription to service)
+      if (sl.isRegistered<ITradeRepository>()) {
+        try {
+          final repository = sl<ITradeRepository>();
+          await repository.dispose();
+        } catch (_) {
+          // Already disposed or not instantiated
         }
-      } catch (_) {
-        // Already disposed or not instantiated
       }
-    }
 
-    // 3. Reset DI container
-    await sl.reset();
+      // 2. Dispose service (stops timer)
+      if (sl.isRegistered<ITradeService>()) {
+        try {
+          final service = sl<ITradeService>();
+          if (service is MockTradeService) {
+            await service.dispose();
+          }
+        } catch (_) {
+          // Already disposed or not instantiated
+        }
+      }
+
+      // 3. Reset DI container
+      await sl.reset();
+    } catch (e) {
+      // Ensure tearDown completes even if cleanup fails
+      debugPrint('Teardown error: $e');
+    }
   });
 
   testWidgets('Trading app smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const TradingApp());
     
-    // Pump a few frames to ensure initialization completes
-    await tester.pump();
-    await tester.pump();
-
     // Verify that the trading dashboard is displayed.
     expect(find.text('Trading Terminal'), findsOneWidget);
+    
+    // Wait a bit to see some data flow
+    await tester.pump(const Duration(milliseconds: 100));
 
-    // Dispose the widget tree explicitly before test ends
+    // Clean up: manually dispose resources BEFORE disposing widget
+    // This is necessary because the repository is a singleton and won't
+    // be automatically disposed when the BLoC closes.
+    if (sl.isRegistered<ITradeRepository>()) {
+      final repository = sl<ITradeRepository>();
+      await repository.dispose();
+    }
+    
+    if (sl.isRegistered<ITradeService>()) {
+      final service = sl<ITradeService>();
+      if (service is MockTradeService) {
+        await service.dispose();
+      }
+    }
+
+    // Now dispose the widget tree
     await tester.pumpWidget(Container());
     
-    // Give time for async dispose operations to complete
+    // Pump to process any remaining microtasks
     await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
   });
 }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:golden_toolkit/golden_toolkit.dart';
 
-import '../../../../../lib/core/di/app_dependencies.dart';
 import '../../../../../lib/core/theme/app_theme.dart';
 import '../../../../../lib/core/utils/clock.dart';
 import '../../../../../lib/features/trading_stream/domain/entities/enriched_trade.dart';
@@ -85,66 +84,75 @@ void main() {
 
     testGoldens('TradeTile loading state', (tester) async {
       await tester.pumpWidgetBuilder(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: Scaffold(
-            body: TradeTile(
-              data: MockTradeTileData.loading(),
-            ),
-          ),
+        TradeTile(
+          data: MockTradeTileData.loading(),
         ),
+        wrapper: materialAppWrapper(theme: AppTheme.darkTheme),
         surfaceSize: const Size(400, 80),
       );
 
-      await screenMatchesGolden(tester, 'trade_tile_loading');
+      await screenMatchesGolden(
+        tester,
+        'trade_tile_loading',
+        customPump: (tester) async {
+          // Pump once without waiting for animations to settle
+          await tester.pump();
+        },
+      );
     });
 
     testGoldens('TradeTile success state', (tester) async {
       await tester.pumpWidgetBuilder(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: Scaffold(
-            body: TradeTile(
-              data: MockTradeTileData.success(),
-            ),
-          ),
+        TradeTile(
+          data: MockTradeTileData.success(),
         ),
+        wrapper: materialAppWrapper(theme: AppTheme.darkTheme),
         surfaceSize: const Size(400, 80),
       );
 
-      await screenMatchesGolden(tester, 'trade_tile_success');
+      await screenMatchesGolden(
+        tester,
+        'trade_tile_success',
+        customPump: (tester) async {
+          await tester.pump();
+        },
+      );
     });
 
     testGoldens('TradeTile error state', (tester) async {
       await tester.pumpWidgetBuilder(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: Scaffold(
-            body: TradeTile(
-              data: MockTradeTileData.error(),
-            ),
-          ),
+        TradeTile(
+          data: MockTradeTileData.error(),
         ),
+        wrapper: materialAppWrapper(theme: AppTheme.darkTheme),
         surfaceSize: const Size(400, 120),
       );
 
-      await screenMatchesGolden(tester, 'trade_tile_error');
+      await screenMatchesGolden(
+        tester,
+        'trade_tile_error',
+        customPump: (tester) async {
+          await tester.pump();
+        },
+      );
     });
 
     testGoldens('TradeTile stale state', (tester) async {
       await tester.pumpWidgetBuilder(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: Scaffold(
-            body: TradeTile(
-              data: MockTradeTileData.stale(),
-            ),
-          ),
+        TradeTile(
+          data: MockTradeTileData.stale(),
         ),
+        wrapper: materialAppWrapper(theme: AppTheme.darkTheme),
         surfaceSize: const Size(400, 80),
       );
 
-      await screenMatchesGolden(tester, 'trade_tile_stale');
+      await screenMatchesGolden(
+        tester,
+        'trade_tile_stale',
+        customPump: (tester) async {
+          await tester.pump();
+        },
+      );
     });
 
     testGoldens('TradeTile with adapter - stale based on clock', (tester) async {
@@ -162,21 +170,23 @@ void main() {
       );
 
       await tester.pumpWidgetBuilder(
-        MaterialApp(
-          theme: AppTheme.darkTheme,
-          home: Scaffold(
-            body: TradeTile(
-              data: TradeTileAdapter(
-                enrichedTrade: staleTrade,
-                sparklineData: [45000, 45100, 45050],
-              ),
-            ),
+        TradeTile(
+          data: TradeTileAdapter(
+            enrichedTrade: staleTrade,
+            sparklineData: [45000, 45100, 45050],
           ),
         ),
+        wrapper: materialAppWrapper(theme: AppTheme.darkTheme),
         surfaceSize: const Size(400, 80),
       );
 
-      await screenMatchesGolden(tester, 'trade_tile_stale_clock');
+      await screenMatchesGolden(
+        tester,
+        'trade_tile_stale_clock',
+        customPump: (tester) async {
+          await tester.pump();
+        },
+      );
     });
   });
 }
