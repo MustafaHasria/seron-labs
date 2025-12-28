@@ -147,7 +147,7 @@ class TradingBloc extends Bloc<TradingEvent, TradingState> {
   Future<void> close() async {
     await _tradeSubscription?.cancel();
     await _metricsSubscription?.cancel();
-    await _repository.dispose();
+    // Note: Repository is a singleton managed by DI - don't dispose it here
     return super.close();
   }
 }

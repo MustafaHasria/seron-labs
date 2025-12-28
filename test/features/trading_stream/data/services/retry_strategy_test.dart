@@ -88,8 +88,8 @@ void main() {
       var attemptCount = 0;
       final stopwatch = Stopwatch()..start();
 
-      expect(
-        () => strategy.execute(() async {
+      await expectLater(
+        strategy.execute(() async {
           attemptCount++;
           throw Exception('fail');
         }),
